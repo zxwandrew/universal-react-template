@@ -3,9 +3,9 @@
 based on:
  - React (no flux/redux)
  - Webpack/ webpack-dev-server
- - express
+ - Koa
  - react-router
- - express-react-views
+ - koa-react-view
 
  To Run:
  
@@ -13,4 +13,10 @@ based on:
  npm install
  npm run build
  npm run start
+```
+To Develop:
+```
+npm install
+npm run watch
+//this will enable hot reloading
 ```
