@@ -1,44 +1,72 @@
-var debug = process.env.NODE_ENV !== "production";
-var webpack = require('webpack');
-var fs = require('fs');
-var path = require('path');
+var webpack       = require("webpack");
+var nodeExternals = require("webpack-node-externals");
+var path          = require("path");
+var fs            = require("fs");
 
-var nodeModules = {};
-fs.readdirSync('node_modules')
-    .filter(function(x) {
-        return ['.bin'].indexOf(x) === -1;
-    })
-    .forEach(function(mod) {
-        nodeModules[mod] = 'commonjs ' + mod;
-    });
+// var webpack = require('webpack');
+// var fs = require('fs');
+// var path = require('path');
+// var nodeExternals = require("webpack-node-externals");
+
+// var debug = process.env.NODE_ENV !== "production";
+var CopyWebpackPlugin = require('copy-webpack-plugin');
+// var CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
+// var nodeModules = {};
+// fs.readdirSync('node_modules')
+//     .filter(function(x) {
+//         return ['.bin'].indexOf(x) === -1;
+//     })
+//     .forEach(function(mod) {
+//         nodeModules[mod] = 'commonjs ' + mod;
+//     });
 
 
-module.exports = {
+module.exports = [{
   target: 'node',
-  context: path.join(__dirname, "src"),
-  devtool: debug ? "inline-sourcemap" : null,
-  entry: "./server.js",
-  module: {
-    loaders: [
-      {
-        test: /\.jsx?$/,
-        exclude: /(node_modules|bower_components)/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['react', 'es2015', 'stage-0'],
-          plugins: ['react-html-attrs', 'transform-class-properties', 'transform-decorators-legacy'],
-        }
-      }
-    ]
-  },
+  cache: false,
+  context: __dirname,
+  debug: false,
+  devtool: "source-map",
+  entry: ["./src/server"],
   output: {
-    path: __dirname + "/dist/",
+    path: path.join(__dirname, "dist"),
     filename: "server.min.js"
   },
-  externals: nodeModules,
-  plugins: debug ? [] : [
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.optimize.UglifyJsPlugin({ mangle: false, sourcemap: false }),
+  plugins: [
   ],
-};
+  module: {
+    loaders: [
+			{test: /\.json$/, loaders: ["json"]}
+		],
+		postLoaders: [
+			{test: /\.js$/, loaders: ["babel?presets[]=es2015&presets[]=stage-0&presets[]=react"], exclude: /node_modules/}
+		],
+		noParse: /\.min\.js/
+  },
+  externals: [nodeExternals({
+    whitelist: ["webpack/hot/poll?1000"]
+  })],
+  resolve:{
+      modulesDirectories: [
+        "src",
+        "node_modules",
+        "web_modules"
+      ],
+      extensions: ["", ".json", ".js"]
+  },
+	node:    {
+		__dirname: true,
+		fs:        "empty"
+	}
+},{
+  context: path.join(__dirname, "src/app"),
+  output:{
+    filename: "out"
+  },
+  plugins: [
+    new CopyWebpackPlugin([
+      {from: 'views', to: 'dist/views'}
+    ])
+  ]
+}
+];
